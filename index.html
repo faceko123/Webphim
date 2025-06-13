@@ -8,18 +8,6 @@
 </head>
 <body>
 
-  <header>
-    <div class="container">
-      <h1>🎬 PHIM HAY MỖI NGÀY</h1>
-      <nav>
-        <a href="#">Trang chủ</a>
-        <a href="#">Thể loại</a>
-        <a href="#">Phim mới</a>
-        <a href="#">Liên hệ</a>
-      </nav>
-    </div>
-  </header>
-
   <main class="container">
     <section class="movie">
       <img src="assets/images/thumbnail.jpg" alt="Thumbnail phim">
@@ -38,11 +26,41 @@
         </div>
       </div>
     </section>
-  </main>
+    <section class="movie">
+      <img src="assets/images/thumbnail.jpg" alt="Thumbnail phim">
+      <div class="movie-details">
+        <h2>Phim: Hành Trình Kỳ Bí</h2>
+        <p><strong>Thể loại:</strong> Hành động, Phiêu lưu</p>
+        <p><strong>Mô tả:</strong> Một hành trình khám phá thế giới bí ẩn đầy nguy hiểm và cảm xúc.</p>
+        
+        <button id="playButton">▶ Xem trailer</button>
 
-  <footer>
-    <p>&copy; 2025 Phim Hay Mỗi Ngày. All rights reserved.</p>
-  </footer>
+        <div id="trailerContainer" style="display: none; margin-top: 15px;">
+          <video controls>
+            <source src="assets/videos/trailer.mp4" type="video/mp4">
+            Trình duyệt của bạn không hỗ trợ video.
+          </video>
+        </div>
+      </div>
+    </section>
+    <section class="movie">
+      <img src="assets/images/thumbnail.jpg" alt="Thumbnail phim">
+      <div class="movie-details">
+        <h2>Phim: Hành Trình Kỳ Bí</h2>
+        <p><strong>Thể loại:</strong> Hành động, Phiêu lưu</p>
+        <p><strong>Mô tả:</strong> Một hành trình khám phá thế giới bí ẩn đầy nguy hiểm và cảm xúc.</p>
+        
+        <button id="playButton">▶ Xem trailer</button>
+
+        <div id="trailerContainer" style="display: none; margin-top: 15px;">
+          <video controls>
+            <source src="assets/videos/trailer.mp4" type="video/mp4">
+            Trình duyệt của bạn không hỗ trợ video.
+          </video>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <script src="script.js"></script>
 </body>
