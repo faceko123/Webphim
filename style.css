@@ -92,3 +92,16 @@ video {
     height: auto;
     border-radius: 10px;
 }
+.video-thumb {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+}
+
+.video-thumb video {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+
