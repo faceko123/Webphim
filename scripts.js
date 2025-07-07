@@ -68,3 +68,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+document.addEventListener("DOMContentLoaded", () => {
+    const videoThumbs = document.querySelectorAll(".video-thumb");
+
+    videoThumbs.forEach(thumb => {
+        const previewVideo = thumb.querySelector("video");
+
+        thumb.addEventListener("click", () => {
+            const realVideo = document.createElement("video");
+            realVideo.src = thumb.dataset.src;
+            realVideo.autoplay = true;
+            realVideo.muted = true;
+            realVideo.loop = true;
+            realVideo.playsInline = true;
+            realVideo.controls = true;
+
+            thumb.innerHTML = "";
+            thumb.appendChild(realVideo);
+
+            observer.observe(realVideo);
+        });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target;
+            if (entry.isIntersecting) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        });
+    }, {
+        threshold: 0.5
+    });
+});
