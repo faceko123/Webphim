@@ -15,8 +15,9 @@ function showSection(id) {
         document.getElementById("mainMenu").style.display = "none";
     }
 
-    // Hiện section được chọn
     const section = document.getElementById(id);
+    console.log("Hiển thị section:", id, section); // ← debug
+
     if (section) section.classList.add('active');
 
     // Nếu là phần đặc biệt video thì đảm bảo phát lại
