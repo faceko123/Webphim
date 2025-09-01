@@ -40,13 +40,14 @@
     }
 
     .cell video {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: #000;
-    }
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Hiển thị toàn bộ video, không cắt */
+  background: #000;   /* Thêm nền đen để lấp khoảng trống */
+}
+
 
     .badge {
       position: absolute;
