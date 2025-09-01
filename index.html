@@ -1,13 +1,92 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Video từ Google Drive</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>4 Video ở 4 góc màn hình</title>
+  <style>
+    :root {
+      --gap: 10px;
+      --bg: #0e0e10;
+      --card-bg: #111318;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #e7e7ea;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: var(--gap);
+      height: 100vh;
+      width: 100vw;
+      padding: var(--gap);
+    }
+
+    .cell {
+      position: relative;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .cell video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: rgba(0,0,0,0.55);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+  </style>
 </head>
 <body>
-  <iframe src="https://drive.google.com/file/d/1B7LUSlh-ahbJKF5S7NqzJzkaaHU_jOTz/preview" 
-          width="640" height="360" allow="autoplay" allowfullscreen>
-  </iframe>
+  <div class="grid">
+    <section class="cell">
+      <div class="badge">Video 1</div>
+      <video autoplay muted loop playsinline>
+        <source src="videos/video1.mp4" type="video/mp4" />
+      </video>
+    </section>
 
+    <section class="cell">
+      <div class="badge">Video 2</div>
+      <video autoplay muted loop playsinline>
+        <source src="videos/video2.mp4" type="video/mp4" />
+      </video>
+    </section>
+
+    <section class="cell">
+      <div class="badge">Video 3</div>
+      <video autoplay muted loop playsinline>
+        <source src="videos/video3.mp4" type="video/mp4" />
+      </video>
+    </section>
+
+    <section class="cell">
+      <div class="badge">Video 4</div>
+      <video autoplay muted loop playsinline>
+        <source src="videos/video4.mp4" type="video/mp4" />
+      </video>
+    </section>
+  </div>
 </body>
 </html>
