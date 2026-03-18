@@ -1,69 +1,93 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>4 Video giữa màn hình</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0e0e10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
+<meta charset="UTF-8">
+<title>FB Tool Manager</title>
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+}
 
-    /* Lưới 2x2 căn giữa */
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 0;              /* không còn khoảng cách */
-      width: 80vw;         /* chỉnh độ rộng tổng thể */
-      height: 80vh;        /* chỉnh độ cao tổng thể */
-      max-width: 1200px;
-      max-height: 800px;
-    }
+.container {
+    width: 600px;
+    margin: auto;
+}
 
-    .cell {
-      position: relative;
-      overflow: hidden;
-    }
+input, button {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    border: none;
+}
 
-    .cell video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;   /* lấp đầy khung, không còn viền đen */
-      background: #000;
-    }
-  </style>
+button {
+    background: #22c55e;
+    color: white;
+    cursor: pointer;
+}
+
+.account {
+    background: #1e293b;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 10px;
+}
+</style>
 </head>
+
 <body>
-  <div class="grid">
-    <section class="cell">
-      <video autoplay muted loop playsinline>
-        <source src="snaptik_7544720237778734356_v2.mp4" type="video/mp4" />
-      </video>
-    </section>
+<div class="container">
+    <h2>Quản lý nhiều nick Facebook</h2>
 
-    <section class="cell">
-      <video autoplay muted loop playsinline>
-        <source src="snaptik_7544544328727776533_v2.mp4" type="video/mp4" />
-      </video>
-    </section>
+    <input id="username" placeholder="Email / SĐT">
+    <input id="password" placeholder="Password">
+    <button onclick="addAccount()">Thêm nick</button>
 
-    <section class="cell">
-      <video autoplay muted loop playsinline>
-        <source src="Locket_1756695918460_45.mp4" type="video/mp4" />
-      </video>
-    </section>
+    <div id="list"></div>
+</div>
 
-    <section class="cell">
-      <video autoplay muted loop playsinline>
-        <source src="Locket_1756695929686_1.mp4" type="video/mp4" />
-      </video>
-    </section>
-  </div>
+<script>
+async function addAccount() {
+    let u = document.getElementById("username").value;
+    let p = document.getElementById("password").value;
+
+    await fetch("/add", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username: u, password: p})
+    });
+
+    loadAccounts();
+}
+
+async function loadAccounts() {
+    let res = await fetch("/accounts");
+    let data = await res.json();
+
+    let html = "";
+    data.forEach(acc => {
+        html += `
+        <div class="account">
+            ${acc.username}
+            <button onclick="run('${acc.username}')">Chạy</button>
+        </div>`;
+    });
+
+    document.getElementById("list").innerHTML = html;
+}
+
+async function run(username) {
+    await fetch("/run", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username})
+    });
+}
+
+loadAccounts();
+</script>
 </body>
 </html>
