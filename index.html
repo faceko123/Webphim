@@ -2,92 +2,114 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>FB Tool Manager</title>
+<title>Crop Skin AOV</title>
 <style>
-body {
-    font-family: Arial;
-    background: #0f172a;
-    color: white;
-    text-align: center;
-}
-
-.container {
-    width: 600px;
-    margin: auto;
-}
-
-input, button {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 8px;
-    border: none;
-}
-
-button {
-    background: #22c55e;
-    color: white;
-    cursor: pointer;
-}
-
-.account {
-    background: #1e293b;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 10px;
-}
+    body {
+        font-family: Arial;
+        text-align: center;
+        background: #111;
+        color: white;
+    }
+    canvas {
+        border: 2px solid #444;
+        margin-top: 10px;
+        cursor: crosshair;
+    }
+    input, button {
+        margin: 10px;
+        padding: 10px;
+    }
 </style>
 </head>
 
 <body>
-<div class="container">
-    <h2>Quản lý nhiều nick Facebook</h2>
 
-    <input id="username" placeholder="Email / SĐT">
-    <input id="password" placeholder="Password">
-    <button onclick="addAccount()">Thêm nick</button>
+<h2>Crop Skin AOV</h2>
 
-    <div id="list"></div>
-</div>
+<input type="file" id="upload">
+
+<br>
+
+<canvas id="canvas" width="400" height="400"></canvas>
+
+<br>
+
+<button onclick="cropImage()">Crop</button>
+<button onclick="download()">Download</button>
 
 <script>
-async function addAccount() {
-    let u = document.getElementById("username").value;
-    let p = document.getElementById("password").value;
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
-    await fetch("/add", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({username: u, password: p})
-    });
+let img = new Image();
+let startX, startY, endX, endY;
+let dragging = false;
 
-    loadAccounts();
+document.getElementById("upload").addEventListener("change", function(e){
+    let file = e.target.files[0];
+    let reader = new FileReader();
+
+    reader.onload = function(event){
+        img.src = event.target.result;
+    }
+
+    reader.readAsDataURL(file);
+});
+
+img.onload = function(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+};
+
+canvas.addEventListener("mousedown", function(e){
+    startX = e.offsetX;
+    startY = e.offsetY;
+    dragging = true;
+});
+
+canvas.addEventListener("mousemove", function(e){
+    if(!dragging) return;
+
+    endX = e.offsetX;
+    endY = e.offsetY;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+});
+
+canvas.addEventListener("mouseup", function(){
+    dragging = false;
+});
+
+function cropImage(){
+    let w = endX - startX;
+    let h = endY - startY;
+
+    let tempCanvas = document.createElement("canvas");
+    let tempCtx = tempCanvas.getContext("2d");
+
+    tempCanvas.width = w;
+    tempCanvas.height = h;
+
+    tempCtx.drawImage(canvas, startX, startY, w, h, 0, 0, w, h);
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(tempCanvas, 0, 0);
+
+    img.src = tempCanvas.toDataURL();
 }
 
-async function loadAccounts() {
-    let res = await fetch("/accounts");
-    let data = await res.json();
-
-    let html = "";
-    data.forEach(acc => {
-        html += `
-        <div class="account">
-            ${acc.username}
-            <button onclick="run('${acc.username}')">Chạy</button>
-        </div>`;
-    });
-
-    document.getElementById("list").innerHTML = html;
+function download(){
+    let link = document.createElement("a");
+    link.download = "cropped.png";
+    link.href = canvas.toDataURL();
+    link.click();
 }
-
-async function run(username) {
-    await fetch("/run", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({username})
-    });
-}
-
-loadAccounts();
 </script>
+
 </body>
 </html>
