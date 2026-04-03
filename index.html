@@ -2,112 +2,116 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Crop Skin AOV</title>
+<title>N-Queens Visualization</title>
+
 <style>
     body {
         font-family: Arial;
         text-align: center;
-        background: #111;
-        color: white;
     }
-    canvas {
-        border: 2px solid #444;
-        margin-top: 10px;
-        cursor: crosshair;
+
+    #board {
+        margin: 20px auto;
+        display: grid;
+        gap: 2px;
+        width: fit-content;
     }
-    input, button {
-        margin: 10px;
-        padding: 10px;
+
+    .cell {
+        width: 50px;
+        height: 50px;
+        font-size: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .white { background: #eee; }
+    .black { background: #555; color: white; }
+
+    button, input {
+        padding: 8px;
+        margin: 5px;
     }
 </style>
 </head>
 
 <body>
 
-<h2>Crop Skin AOV</h2>
+<h2>👑 Bài toán N quân hậu</h2>
 
-<input type="file" id="upload">
+<input type="number" id="n" value="4" min="4">
+<button onclick="start()">Chạy</button>
 
-<br>
-
-<canvas id="canvas" width="400" height="400"></canvas>
-
-<br>
-
-<button onclick="cropImage()">Crop</button>
-<button onclick="download()">Download</button>
+<div id="board"></div>
 
 <script>
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
+let n, board, a;
+let delay = 300;
 
-let img = new Image();
-let startX, startY, endX, endY;
-let dragging = false;
+function createBoard() {
+    board.innerHTML = "";
+    board.style.gridTemplateColumns = `repeat(${n}, 50px)`;
 
-document.getElementById("upload").addEventListener("change", function(e){
-    let file = e.target.files[0];
-    let reader = new FileReader();
-
-    reader.onload = function(event){
-        img.src = event.target.result;
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            let cell = document.createElement("div");
+            cell.className = "cell " + ((i + j) % 2 === 0 ? "white" : "black");
+            cell.id = i + "-" + j;
+            board.appendChild(cell);
+        }
     }
-
-    reader.readAsDataURL(file);
-});
-
-img.onload = function(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-};
-
-canvas.addEventListener("mousedown", function(e){
-    startX = e.offsetX;
-    startY = e.offsetY;
-    dragging = true;
-});
-
-canvas.addEventListener("mousemove", function(e){
-    if(!dragging) return;
-
-    endX = e.offsetX;
-    endY = e.offsetY;
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(startX, startY, endX - startX, endY - startY);
-});
-
-canvas.addEventListener("mouseup", function(){
-    dragging = false;
-});
-
-function cropImage(){
-    let w = endX - startX;
-    let h = endY - startY;
-
-    let tempCanvas = document.createElement("canvas");
-    let tempCtx = tempCanvas.getContext("2d");
-
-    tempCanvas.width = w;
-    tempCanvas.height = h;
-
-    tempCtx.drawImage(canvas, startX, startY, w, h, 0, 0, w, h);
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(tempCanvas, 0, 0);
-
-    img.src = tempCanvas.toDataURL();
 }
 
-function download(){
-    let link = document.createElement("a");
-    link.download = "cropped.png";
-    link.href = canvas.toDataURL();
-    link.click();
+function draw() {
+    document.querySelectorAll(".cell").forEach(c => c.textContent = "");
+
+    for (let i = 0; i < n; i++) {
+        if (a[i] !== -1) {
+            document.getElementById(i + "-" + a[i]).textContent = "♛";
+        }
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function check(row, col) {
+    for (let i = 0; i < row; i++) {
+        if (a[i] === col || Math.abs(a[i] - col) === Math.abs(i - row))
+            return false;
+    }
+    return true;
+}
+
+async function solve(row) {
+    if (row === n) return true;
+
+    for (let col = 0; col < n; col++) {
+        if (check(row, col)) {
+            a[row] = col;
+            draw();
+            await sleep(delay);
+
+            if (await solve(row + 1)) return true;
+
+            a[row] = -1;
+            draw();
+            await sleep(delay);
+        }
+    }
+    return false;
+}
+
+async function start() {
+    n = parseInt(document.getElementById("n").value);
+    board = document.getElementById("board");
+
+    a = new Array(n).fill(-1);
+
+    createBoard();
+    await solve(0);
 }
 </script>
 
