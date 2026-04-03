@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>N-Queens Visualization</title>
+<title>N-Queens Final Result</title>
 
 <style>
     body {
@@ -38,16 +38,15 @@
 
 <body>
 
-<h2>👑 Bài toán N quân hậu</h2>
+<h2>👑 Bài toán N quân hậu (chỉ hiển thị kết quả)</h2>
 
 <input type="number" id="n" value="4" min="4">
-<button onclick="start()">Chạy</button>
+<button onclick="start()">Giải</button>
 
 <div id="board"></div>
 
 <script>
 let n, board, a;
-let delay = 300;
 
 function createBoard() {
     board.innerHTML = "";
@@ -64,17 +63,11 @@ function createBoard() {
 }
 
 function draw() {
-    document.querySelectorAll(".cell").forEach(c => c.textContent = "");
-
     for (let i = 0; i < n; i++) {
         if (a[i] !== -1) {
             document.getElementById(i + "-" + a[i]).textContent = "♛";
         }
     }
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function check(row, col) {
@@ -85,33 +78,35 @@ function check(row, col) {
     return true;
 }
 
-async function solve(row) {
+// chỉ tìm 1 nghiệm
+function solve(row) {
     if (row === n) return true;
 
     for (let col = 0; col < n; col++) {
         if (check(row, col)) {
             a[row] = col;
-            draw();
-            await sleep(delay);
 
-            if (await solve(row + 1)) return true;
+            if (solve(row + 1)) return true;
 
             a[row] = -1;
-            draw();
-            await sleep(delay);
         }
     }
     return false;
 }
 
-async function start() {
+function start() {
     n = parseInt(document.getElementById("n").value);
     board = document.getElementById("board");
 
     a = new Array(n).fill(-1);
 
     createBoard();
-    await solve(0);
+
+    if (solve(0)) {
+        draw(); // chỉ vẽ kết quả cuối
+    } else {
+        alert("Không có nghiệm!");
+    }
 }
 </script>
 
