@@ -1,112 +1,98 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>N-Queens Final Result</title>
-
-<style>
+  <meta charset="UTF-8">
+  <title>Tool cắt ảnh theo ảnh mẫu</title>
+  <style>
     body {
-        font-family: Arial;
-        text-align: center;
+      background: #111;
+      color: #fff;
+      font-family: Arial;
+      text-align: center;
     }
-
-    #board {
-        margin: 20px auto;
-        display: grid;
-        gap: 2px;
-        width: fit-content;
+    canvas {
+      border: 2px solid #00eaff;
+      margin-top: 10px;
+      cursor: grab;
     }
-
-    .cell {
-        width: 50px;
-        height: 50px;
-        font-size: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    input {
+      margin: 6px;
     }
-
-    .white { background: #eee; }
-    .black { background: #555; color: white; }
-
-    button, input {
-        padding: 8px;
-        margin: 5px;
-    }
-</style>
+  </style>
 </head>
-
 <body>
 
-<h2>👑 Bài toán N quân hậu (chỉ hiển thị kết quả)</h2>
+<h2>Tool cắt ảnh theo ảnh mẫu</h2>
 
-<input type="number" id="n" value="4" min="4">
-<button onclick="start()">Giải</button>
+<input type="file" id="sourceImg" accept="image/*">
+<br>
+<input type="file" id="targetImg" accept="image/*">
+<br>
 
-<div id="board"></div>
+<canvas id="canvas"></canvas>
+<br>
+<button onclick="exportImage()">Xuất ảnh</button>
+<a id="download"></a>
 
 <script>
-let n, board, a;
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
-function createBoard() {
-    board.innerHTML = "";
-    board.style.gridTemplateColumns = `repeat(${n}, 50px)`;
+let srcImg = new Image();
+let scale = 1, offsetX = 0, offsetY = 0;
+let isDragging = false, startX, startY;
+let ratio = 3/4;
 
-    for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n; j++) {
-            let cell = document.createElement("div");
-            cell.className = "cell " + ((i + j) % 2 === 0 ? "white" : "black");
-            cell.id = i + "-" + j;
-            board.appendChild(cell);
-        }
-    }
-}
+document.getElementById("targetImg").onchange = e => {
+  let img = new Image();
+  img.onload = () => {
+    ratio = img.width / img.height;
+    canvas.height = 450;
+    canvas.width = canvas.height * ratio;
+    draw();
+  };
+  img.src = URL.createObjectURL(e.target.files[0]);
+};
+
+document.getElementById("sourceImg").onchange = e => {
+  srcImg.onload = draw;
+  srcImg.src = URL.createObjectURL(e.target.files[0]);
+};
 
 function draw() {
-    for (let i = 0; i < n; i++) {
-        if (a[i] !== -1) {
-            document.getElementById(i + "-" + a[i]).textContent = "♛";
-        }
-    }
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  let w = srcImg.width * scale;
+  let h = srcImg.height * scale;
+  ctx.drawImage(srcImg, offsetX, offsetY, w, h);
 }
 
-function check(row, col) {
-    for (let i = 0; i < row; i++) {
-        if (a[i] === col || Math.abs(a[i] - col) === Math.abs(i - row))
-            return false;
-    }
-    return true;
-}
+canvas.onmousedown = e => {
+  isDragging = true;
+  startX = e.offsetX;
+  startY = e.offsetY;
+};
 
-// chỉ tìm 1 nghiệm
-function solve(row) {
-    if (row === n) return true;
+canvas.onmousemove = e => {
+  if (!isDragging) return;
+  offsetX += e.offsetX - startX;
+  offsetY += e.offsetY - startY;
+  startX = e.offsetX;
+  startY = e.offsetY;
+  draw();
+};
 
-    for (let col = 0; col < n; col++) {
-        if (check(row, col)) {
-            a[row] = col;
+canvas.onmouseup = () => isDragging = false;
+canvas.onwheel = e => {
+  scale += e.deltaY * -0.001;
+  scale = Math.max(0.2, Math.min(scale, 5));
+  draw();
+};
 
-            if (solve(row + 1)) return true;
-
-            a[row] = -1;
-        }
-    }
-    return false;
-}
-
-function start() {
-    n = parseInt(document.getElementById("n").value);
-    board = document.getElementById("board");
-
-    a = new Array(n).fill(-1);
-
-    createBoard();
-
-    if (solve(0)) {
-        draw(); // chỉ vẽ kết quả cuối
-    } else {
-        alert("Không có nghiệm!");
-    }
+function exportImage() {
+  let link = document.getElementById("download");
+  link.download = "crop.png";
+  link.href = canvas.toDataURL("image/png");
+  link.textContent = "Tải ảnh";
 }
 </script>
 
