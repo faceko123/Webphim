@@ -1,100 +1,111 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Tool cắt ảnh theo ảnh mẫu</title>
-  <style>
-    body {
-      background: #111;
-      color: #fff;
-      font-family: Arial;
-      text-align: center;
-    }
-    canvas {
-      border: 2px solid #00eaff;
-      margin-top: 10px;
-      cursor: grab;
-    }
-    input {
-      margin: 6px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Crop cố định theo pixel</title>
+<style>
+  body {
+    background: #0f0f0f;
+    color: #fff;
+    text-align: center;
+    font-family: Arial;
+  }
+  canvas {
+    border: 2px solid #00eaff;
+    margin-top: 10px;
+    cursor: grab;
+  }
+</style>
 </head>
 <body>
 
-<h2>Tool cắt ảnh theo ảnh mẫu</h2>
+<h2>Crop ảnh cố định theo pixel</h2>
 
-<input type="file" id="sourceImg" accept="image/*">
-<br>
-<input type="file" id="targetImg" accept="image/*">
-<br>
+<input type="file" id="upload" accept="image/*"><br><br>
 
-<canvas id="canvas"></canvas>
-<br>
-<button onclick="exportImage()">Xuất ảnh</button>
+<canvas id="canvas"></canvas><br>
+<p>🖱 Kéo ảnh | 🖲 Lăn chuột để zoom</p>
+<button onclick="exportImg()">Xuất ảnh</button>
 <a id="download"></a>
 
 <script>
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
+/* ================= CẤU HÌNH FIX PIXEL ================= */
+const CROP_WIDTH  = 308;   // ← đổi tại đây
+const CROP_HEIGHT = 454;   // ← đổi tại đây
+/* ====================================================== */
 
-let srcImg = new Image();
-let scale = 1, offsetX = 0, offsetY = 0;
-let isDragging = false, startX, startY;
-let ratio = 3/4;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-document.getElementById("targetImg").onchange = e => {
-  let img = new Image();
+canvas.width = CROP_WIDTH;
+canvas.height = CROP_HEIGHT;
+
+let img = new Image();
+let scale = 1;
+let x = 0, y = 0;
+let dragging = false;
+let startX, startY;
+
+document.getElementById("upload").onchange = e => {
   img.onload = () => {
-    ratio = img.width / img.height;
-    canvas.height = 450;
-    canvas.width = canvas.height * ratio;
+    scale = Math.max(
+      CROP_WIDTH / img.width,
+      CROP_HEIGHT / img.height
+    );
+    x = (CROP_WIDTH - img.width * scale) / 2;
+    y = (CROP_HEIGHT - img.height * scale) / 2;
     draw();
   };
   img.src = URL.createObjectURL(e.target.files[0]);
 };
 
-document.getElementById("sourceImg").onchange = e => {
-  srcImg.onload = draw;
-  srcImg.src = URL.createObjectURL(e.target.files[0]);
-};
-
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  let w = srcImg.width * scale;
-  let h = srcImg.height * scale;
-  ctx.drawImage(srcImg, offsetX, offsetY, w, h);
+  ctx.drawImage(
+    img,
+    x, y,
+    img.width * scale,
+    img.height * scale
+  );
 }
 
 canvas.onmousedown = e => {
-  isDragging = true;
+  dragging = true;
   startX = e.offsetX;
   startY = e.offsetY;
 };
 
 canvas.onmousemove = e => {
-  if (!isDragging) return;
-  offsetX += e.offsetX - startX;
-  offsetY += e.offsetY - startY;
+  if (!dragging) return;
+  x += e.offsetX - startX;
+  y += e.offsetY - startY;
   startX = e.offsetX;
   startY = e.offsetY;
   draw();
 };
 
-canvas.onmouseup = () => isDragging = false;
+canvas.onmouseup = () => dragging = false;
+canvas.onmouseleave = () => dragging = false;
+
 canvas.onwheel = e => {
+  e.preventDefault();
+  let prevScale = scale;
   scale += e.deltaY * -0.001;
-  scale = Math.max(0.2, Math.min(scale, 5));
+  scale = Math.max(scale, prevScale * 0.9);
+
+  x -= (img.width * (scale - prevScale)) / 2;
+  y -= (img.height * (scale - prevScale)) / 2;
   draw();
 };
 
-function exportImage() {
-  let link = document.getElementById("download");
-  link.download = "crop.png";
+function exportImg() {
+  const link = document.getElementById("download");
   link.href = canvas.toDataURL("image/png");
-  link.textContent = "Tải ảnh";
+  link.download = `crop_${CROP_WIDTH}x${CROP_HEIGHT}.png`;
+  link.textContent = "⬇ Tải ảnh đã crop";
 }
 </script>
 
 </body>
 </html>
+``
