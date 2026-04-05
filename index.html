@@ -2,110 +2,150 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Crop cố định theo pixel</title>
+<title>Crop giữ nguyên ảnh gốc</title>
 <style>
   body {
-    background: #0f0f0f;
-    color: #fff;
-    text-align: center;
-    font-family: Arial;
+    background:#0e0e0e;
+    color:#fff;
+    text-align:center;
+    font-family:Arial;
   }
   canvas {
-    border: 2px solid #00eaff;
-    margin-top: 10px;
-    cursor: grab;
+    border:1px solid #333;
+    margin-top:10px;
+    cursor:grab;
   }
 </style>
 </head>
 <body>
 
-<h2>Crop ảnh cố định theo pixel</h2>
-
-<input type="file" id="upload" accept="image/*"><br><br>
+<h2>Crop giữ nguyên ảnh gốc (hiện khung)</h2>
+<input type="file" id="upload" accept="image/*"><br>
 
 <canvas id="canvas"></canvas><br>
-<p>🖱 Kéo ảnh | 🖲 Lăn chuột để zoom</p>
-<button onclick="exportImg()">Xuất ảnh</button>
+<p>🖱 Kéo ảnh | 🖲 Zoom | ⬛ Khung cố định</p>
+
+<button onclick="crop()">Cắt ảnh</button>
 <a id="download"></a>
 
 <script>
-/* ================= CẤU HÌNH FIX PIXEL ================= */
-const CROP_WIDTH  = 175;   // ← đổi tại đây
-const CROP_HEIGHT = 270;   // ← đổi tại đây
-/* ====================================================== */
+/* ===== CONFIG ===== */
+const CROP_W = 308;
+const CROP_H = 454;
+const DPR = window.devicePixelRatio || 1;
+/* ================= */
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = CROP_WIDTH;
-canvas.height = CROP_HEIGHT;
+canvas.width = 900 * DPR;
+canvas.height = 500 * DPR;
+canvas.style.width = "900px";
+canvas.style.height = "500px";
+ctx.scale(DPR, DPR);
+
+ctx.imageSmoothingEnabled = false;
 
 let img = new Image();
 let scale = 1;
 let x = 0, y = 0;
-let dragging = false;
-let startX, startY;
+let drag = false, sx, sy;
+
+// Crop box position (center)
+function cropBox() {
+  return {
+    x: (canvas.width/DPR - CROP_W)/2,
+    y: (canvas.height/DPR - CROP_H)/2
+  };
+}
 
 document.getElementById("upload").onchange = e => {
   img.onload = () => {
     scale = Math.max(
-      CROP_WIDTH / img.width,
-      CROP_HEIGHT / img.height
+      (canvas.width/DPR)/img.width,
+      (canvas.height/DPR)/img.height
     );
-    x = (CROP_WIDTH - img.width * scale) / 2;
-    y = (CROP_HEIGHT - img.height * scale) / 2;
+    x = (canvas.width/DPR - img.width * scale)/2;
+    y = (canvas.height/DPR - img.height * scale)/2;
     draw();
   };
   img.src = URL.createObjectURL(e.target.files[0]);
 };
 
 function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(
-    img,
-    x, y,
-    img.width * scale,
-    img.height * scale
-  );
+  ctx.clearRect(0,0,canvas.width/DPR,canvas.height/DPR);
+
+  // Ảnh gốc
+  ctx.drawImage(img, x, y, img.width*scale, img.height*scale);
+
+  // Mask tối
+  ctx.fillStyle = "rgba(0,0,0,0.65)";
+  ctx.fillRect(0,0,canvas.width/DPR,canvas.height/DPR);
+
+  // Lỗ crop
+  const c = cropBox();
+  ctx.clearRect(c.x,c.y,CROP_W,CROP_H);
+
+  // Viền crop
+  ctx.strokeStyle = "#00eaff";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(c.x,c.y,CROP_W,CROP_H);
 }
 
+// Drag
 canvas.onmousedown = e => {
-  dragging = true;
-  startX = e.offsetX;
-  startY = e.offsetY;
+  drag = true;
+  sx = e.offsetX;
+  sy = e.offsetY;
 };
 
 canvas.onmousemove = e => {
-  if (!dragging) return;
-  x += e.offsetX - startX;
-  y += e.offsetY - startY;
-  startX = e.offsetX;
-  startY = e.offsetY;
+  if (!drag) return;
+  x += e.offsetX - sx;
+  y += e.offsetY - sy;
+  sx = e.offsetX;
+  sy = e.offsetY;
   draw();
 };
 
-canvas.onmouseup = () => dragging = false;
-canvas.onmouseleave = () => dragging = false;
+canvas.onmouseup = () => drag = false;
+canvas.onmouseleave = () => drag = false;
 
+// Zoom
 canvas.onwheel = e => {
   e.preventDefault();
-  let prevScale = scale;
+  let prev = scale;
   scale += e.deltaY * -0.001;
-  scale = Math.max(scale, prevScale * 0.9);
-
-  x -= (img.width * (scale - prevScale)) / 2;
-  y -= (img.height * (scale - prevScale)) / 2;
+  scale = Math.max(scale, prev * 0.9);
   draw();
 };
 
-function exportImg() {
+// Export
+function crop() {
+  const c = cropBox();
+
+  const out = document.createElement("canvas");
+  out.width = CROP_W;
+  out.height = CROP_H;
+  const o = out.getContext("2d");
+  o.imageSmoothingEnabled = false;
+
+  o.drawImage(
+    img,
+    (c.x - x)/scale,
+    (c.y - y)/scale,
+    CROP_W/scale,
+    CROP_H/scale,
+    0,0,
+    CROP_W,CROP_H
+  );
+
   const link = document.getElementById("download");
-  link.href = canvas.toDataURL("image/png");
-  link.download = `crop_${CROP_WIDTH}x${CROP_HEIGHT}.png`;
-  link.textContent = "⬇ Tải ảnh đã crop";
+  link.href = out.toDataURL("image/png");
+  link.download = "crop_exact.png";
+  link.textContent = "⬇ Tải ảnh đã cắt";
 }
 </script>
 
 </body>
 </html>
-``
