@@ -2,150 +2,135 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Crop giữ nguyên ảnh gốc</title>
+<title>Crop khung tự do</title>
 <style>
   body {
-    background:#0e0e0e;
+    background:#111;
     color:#fff;
-    text-align:center;
     font-family:Arial;
+    text-align:center;
   }
   canvas {
-    border:1px solid #333;
     margin-top:10px;
-    cursor:grab;
+    border:1px solid #444;
+    cursor:default;
   }
 </style>
 </head>
 <body>
 
-<h2>Crop giữ nguyên ảnh gốc (hiện khung)</h2>
+<h2>Crop với khung di chuyển & resize</h2>
 <input type="file" id="upload" accept="image/*"><br>
 
-<canvas id="canvas"></canvas><br>
-<p>🖱 Kéo ảnh | 🖲 Zoom | ⬛ Khung cố định</p>
+<canvas id="canvas" width="900" height="500"></canvas><br>
 
-<button onclick="crop()">Cắt ảnh</button>
+<button onclick="exportCrop()">Cắt ảnh</button>
 <a id="download"></a>
 
 <script>
-/* ===== CONFIG ===== */
-const CROP_W = 308;
-const CROP_H = 454;
-const DPR = window.devicePixelRatio || 1;
-/* ================= */
-
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
-canvas.width = 900 * DPR;
-canvas.height = 500 * DPR;
-canvas.style.width = "900px";
-canvas.style.height = "500px";
-ctx.scale(DPR, DPR);
-
 ctx.imageSmoothingEnabled = false;
 
 let img = new Image();
 let scale = 1;
-let x = 0, y = 0;
-let drag = false, sx, sy;
+let imgX = 0, imgY = 0;
 
-// Crop box position (center)
-function cropBox() {
-  return {
-    x: (canvas.width/DPR - CROP_W)/2,
-    y: (canvas.height/DPR - CROP_H)/2
-  };
-}
+let crop = { x:300, y:100, w:200, h:300 };
+let mode = null;
+let sx=0, sy=0;
 
 document.getElementById("upload").onchange = e => {
   img.onload = () => {
-    scale = Math.max(
-      (canvas.width/DPR)/img.width,
-      (canvas.height/DPR)/img.height
+    scale = Math.min(
+      canvas.width / img.width,
+      canvas.height / img.height
     );
-    x = (canvas.width/DPR - img.width * scale)/2;
-    y = (canvas.height/DPR - img.height * scale)/2;
+    imgX = (canvas.width - img.width*scale)/2;
+    imgY = (canvas.height - img.height*scale)/2;
     draw();
   };
   img.src = URL.createObjectURL(e.target.files[0]);
 };
 
 function draw() {
-  ctx.clearRect(0,0,canvas.width/DPR,canvas.height/DPR);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img, imgX, imgY, img.width*scale, img.height*scale);
 
-  // Ảnh gốc
-  ctx.drawImage(img, x, y, img.width*scale, img.height*scale);
-
-  // Mask tối
-  ctx.fillStyle = "rgba(0,0,0,0.65)";
-  ctx.fillRect(0,0,canvas.width/DPR,canvas.height/DPR);
-
-  // Lỗ crop
-  const c = cropBox();
-  ctx.clearRect(c.x,c.y,CROP_W,CROP_H);
-
-  // Viền crop
+  // Crop frame
   ctx.strokeStyle = "#00eaff";
   ctx.lineWidth = 2;
-  ctx.strokeRect(c.x,c.y,CROP_W,CROP_H);
+  ctx.strokeRect(crop.x, crop.y, crop.w, crop.h);
+
+  // Resize handles
+  ctx.fillStyle = "#00eaff";
+  const s = 6;
+  ["tl","tr","bl","br"].forEach(p=>{
+    const px = p.includes("r") ? crop.x+crop.w : crop.x;
+    const py = p.includes("b") ? crop.y+crop.h : crop.y;
+    ctx.fillRect(px-s,py-s,s*2,s*2);
+  });
 }
 
-// Drag
+function hitCorner(x,y){
+  const s=8;
+  if (near(x,y,crop.x,crop.y)) return "tl";
+  if (near(x,y,crop.x+crop.w,crop.y)) return "tr";
+  if (near(x,y,crop.x,crop.y+crop.h)) return "bl";
+  if (near(x,y,crop.x+crop.w,crop.y+crop.h)) return "br";
+  if (inside(x,y,crop)) return "move";
+  return null;
+}
+
+function near(x,y,px,py){return Math.abs(x-px)<8 && Math.abs(y-py)<8;}
+function inside(x,y,r){return x>r.x&&y>r.y&&x<r.x+r.w&&y<r.y+r.h;}
+
 canvas.onmousedown = e => {
-  drag = true;
-  sx = e.offsetX;
-  sy = e.offsetY;
+  sx=e.offsetX; sy=e.offsetY;
+  mode = hitCorner(sx,sy);
 };
 
 canvas.onmousemove = e => {
-  if (!drag) return;
-  x += e.offsetX - sx;
-  y += e.offsetY - sy;
-  sx = e.offsetX;
-  sy = e.offsetY;
+  if(!mode) return;
+  let dx=e.offsetX-sx, dy=e.offsetY-sy;
+
+  if(mode==="move"){ crop.x+=dx; crop.y+=dy; }
+  if(mode==="tl"){ crop.x+=dx; crop.y+=dy; crop.w-=dx; crop.h-=dy;}
+  if(mode==="tr"){ crop.y+=dy; crop.w+=dx; crop.h-=dy;}
+  if(mode==="bl"){ crop.x+=dx; crop.w-=dx; crop.h+=dy;}
+  if(mode==="br"){ crop.w+=dx; crop.h+=dy;}
+
+  sx=e.offsetX; sy=e.offsetY;
   draw();
 };
 
-canvas.onmouseup = () => drag = false;
-canvas.onmouseleave = () => drag = false;
+canvas.onmouseup = ()=>mode=null;
+canvas.onmouseleave = ()=>mode=null;
 
-// Zoom
-canvas.onwheel = e => {
-  e.preventDefault();
-  let prev = scale;
-  scale += e.deltaY * -0.001;
-  scale = Math.max(scale, prev * 0.9);
-  draw();
-};
-
-// Export
-function crop() {
-  const c = cropBox();
-
-  const out = document.createElement("canvas");
-  out.width = CROP_W;
-  out.height = CROP_H;
-  const o = out.getContext("2d");
-  o.imageSmoothingEnabled = false;
+// EXPORT
+function exportCrop(){
+  const out=document.createElement("canvas");
+  out.width=crop.w;
+  out.height=crop.h;
+  const o=out.getContext("2d");
 
   o.drawImage(
     img,
-    (c.x - x)/scale,
-    (c.y - y)/scale,
-    CROP_W/scale,
-    CROP_H/scale,
+    (crop.x-imgX)/scale,
+    (crop.y-imgY)/scale,
+    crop.w/scale,
+    crop.h/scale,
     0,0,
-    CROP_W,CROP_H
+    crop.w,crop.h
   );
 
-  const link = document.getElementById("download");
-  link.href = out.toDataURL("image/png");
-  link.download = "crop_exact.png";
-  link.textContent = "⬇ Tải ảnh đã cắt";
+  const link=document.getElementById("download");
+  link.href=out.toDataURL("image/png");
+  link.download="crop.png";
+  link.textContent="⬇ Tải ảnh";
 }
 </script>
 
 </body>
 </html>
+``
