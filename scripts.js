@@ -1,106 +1,104 @@
-function showSection(id) {
-    // Dừng tất cả video khi chuyển section
-    document.querySelectorAll("video").forEach(video => {
-        video.pause();
-        video.currentTime = 0;
-    });
+const stories = [
+{
+title: "Hoa Sơn Tái Khởi",
+image: "images/1.jpg",
+telegram: "https://t.me/group1"
+},
+{
+title: "Người Xấu",
+image: "images/2.jpg",
+telegram: "https://t.me/group2"
+},
+// thêm đến 100 truyện
+];
 
-    // Ẩn tất cả section
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-    });
+const ITEMS_PER_PAGE = 24;
 
-    // Ẩn menu chính nếu không quay lại
-    if (id !== "mainMenu") {
-        document.getElementById("mainMenu").style.display = "none";
+let filtered = [...stories];
+let currentPage = 1;
+
+const grid = document.getElementById("grid");
+const pagination = document.getElementById("pagination");
+const search = document.getElementById("search");
+
+function renderPage(page){
+
+
+currentPage = page;
+
+const start = (page - 1) * ITEMS_PER_PAGE;
+const end = start + ITEMS_PER_PAGE;
+
+const items = filtered.slice(start,end);
+
+grid.innerHTML = "";
+
+items.forEach(item=>{
+
+    const card = document.createElement("div");
+
+    card.className = "card";
+
+    card.innerHTML = `
+        <img loading="lazy"
+             src="${item.image}"
+             alt="${item.title}">
+        <div class="info">
+            <div class="title">${item.title}</div>
+            <a class="telegram"
+               href="${item.telegram}"
+               target="_blank">
+               Telegram
+            </a>
+        </div>
+    `;
+
+    grid.appendChild(card);
+});
+
+renderPagination();
+
+
+}
+
+function renderPagination(){
+
+
+pagination.innerHTML = "";
+
+const totalPages =
+    Math.ceil(filtered.length / ITEMS_PER_PAGE);
+
+for(let i=1;i<=totalPages;i++){
+
+    const btn = document.createElement("button");
+
+    btn.textContent = i;
+
+    if(i === currentPage){
+        btn.classList.add("active");
     }
 
-    const section = document.getElementById(id);
-    console.log("Hiển thị section:", id, section); // ← debug
+    btn.onclick = ()=>renderPage(i);
 
-    if (section) section.classList.add('active');
-
-    // Nếu là phần đặc biệt video thì đảm bảo phát lại
-    if (id === "specialVideos") {
-        document.querySelectorAll('#specialVideos video').forEach(video => {
-            video.play();
-        });
-    }
+    pagination.appendChild(btn);
 }
 
-function goBack() {
-    // Dừng tất cả video
-    document.querySelectorAll("video").forEach(video => {
-        video.pause();
-        video.currentTime = 0;
-    });
 
-    // Ẩn tất cả section
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    // Hiện lại menu chính
-    document.getElementById("mainMenu").style.display = "flex";
 }
 
-function showAlbum(albumId) {
-    // Ẩn tất cả album
-    document.querySelectorAll('.album').forEach(album => {
-        album.classList.remove('active');
-    });
+search.addEventListener("input",()=>{
 
-    // Ẩn tất cả phần ảnh của các phần
-    ['part1Images', 'part2Images', 'part3Images'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('active');
-    });
+const keyword =
+    search.value.toLowerCase();
 
-    // Hiện album được chọn
-    document.getElementById(albumId).classList.add('active');
-}
+filtered = stories.filter(story =>
+    story.title.toLowerCase()
+    .includes(keyword)
+);
 
-// Gán sự kiện click ảnh trong album để mở lightbox (nếu có)
-document.addEventListener('DOMContentLoaded', () => {
-    const albumImages = document.querySelectorAll('.album img');
-    albumImages.forEach(img => {
-        img.addEventListener('click', () => {
-            showLightbox(img.src); // Hàm showLightbox phải được định nghĩa nếu bạn muốn mở ảnh to
-        });
-    });
+renderPage(1);
+
 });
-document.addEventListener("DOMContentLoaded", () => {
-    const videoThumbs = document.querySelectorAll(".video-thumb");
 
-    videoThumbs.forEach(thumb => {
-        const previewVideo = thumb.querySelector("video");
-
-        thumb.addEventListener("click", () => {
-            const realVideo = document.createElement("video");
-            realVideo.src = thumb.dataset.src;
-            realVideo.autoplay = true;
-            realVideo.muted = true;
-            realVideo.loop = true;
-            realVideo.playsInline = true;
-            realVideo.controls = true;
-
-            thumb.innerHTML = "";
-            thumb.appendChild(realVideo);
-
-            observer.observe(realVideo);
-        });
-    });
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            const video = entry.target;
-            if (entry.isIntersecting) {
-                video.play();
-            } else {
-                video.pause();
-            }
-        });
-    }, {
-        threshold: 0.5
-    });
-});
+renderPage(1);
