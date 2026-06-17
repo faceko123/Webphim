@@ -49,8 +49,8 @@ if(items.length === 0){
     empty.className = "empty-state";
 
     empty.innerHTML = search.value
-        ? `Không tìm thấy truyện nào khớp với “<strong>${search.value}</strong>”`
-        : `Chưa có truyện nào trong thư viện.`;
+        ? `Không tìm thấy video nào khớp với “<strong>${search.value}</strong>”`
+        : `Chưa có video nào trong thư viện.`;
 
     grid.appendChild(empty);
 
