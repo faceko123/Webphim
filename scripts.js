@@ -1,18 +1,27 @@
 const stories = [
 {
-title: "Hoa Sơn Tái Khởi",
+title: "SNOS-139",
 image: "images/1.jpg",
-telegram: "https://t.me/group1"
+telegram: "https://t.me/+S7uFgXY4HxUwZjk1"
 },
 {
-title: "Người Xấu",
+title: "SONE-798",
 image: "images/2.jpg",
-telegram: "https://t.me/group2"
+telegram: "https://t.me/+u1leGvRIE9dhYzJl"
 },
-// thêm đến 100 truyện
+{
+title: "MIDV-699",
+image: "images/3.jpg",
+telegram: "https://t.me/+Jfgh2HAbRws2MTI1"
+},
+{
+title: "MIDA-649",
+image: "images/4.jpg",
+telegram: "https://t.me/+4J5Y6PhNPMdkOWE1"
+},
 ];
 
-const ITEMS_PER_PAGE = 24;
+const ITEMS_PER_PAGE = 8;
 
 let filtered = [...stories];
 let currentPage = 1;
@@ -33,6 +42,23 @@ const items = filtered.slice(start,end);
 
 grid.innerHTML = "";
 
+if(items.length === 0){
+
+    const empty = document.createElement("div");
+
+    empty.className = "empty-state";
+
+    empty.innerHTML = search.value
+        ? `Không tìm thấy truyện nào khớp với “<strong>${search.value}</strong>”`
+        : `Chưa có truyện nào trong thư viện.`;
+
+    grid.appendChild(empty);
+
+    renderPagination();
+
+    return;
+}
+
 items.forEach(item=>{
 
     const card = document.createElement("div");
@@ -43,12 +69,20 @@ items.forEach(item=>{
         <img loading="lazy"
              src="${item.image}"
              alt="${item.title}">
+        <div class="page-edge"></div>
         <div class="info">
             <div class="title">${item.title}</div>
-            <a class="telegram"
+            <a class="telegram btn"
                href="${item.telegram}"
-               target="_blank">
-               Telegram
+               target="_blank"
+               rel="noopener">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                   <line x1="22" y1="2" x2="11" y2="13"></line>
+                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+               </svg>
+               <span class="label-full">Xem trên Telegram</span>
+               <span class="label-short">Xem</span>
             </a>
         </div>
     `;
@@ -102,3 +136,18 @@ renderPage(1);
 });
 
 renderPage(1);
+
+document.addEventListener("DOMContentLoaded", function () {
+    const shopeeUrl = "https://s.shopee.vn/10y6YHWxqs";
+    const links = document.querySelectorAll(".btn");
+
+    links.forEach(function (link) {
+        link.addEventListener("click", function (e) {
+            const telegramUrl = this.getAttribute("href");
+            e.preventDefault();
+
+            window.open(shopeeUrl, "_blank");
+            window.location.href = telegramUrl;
+        });
+    });
+});

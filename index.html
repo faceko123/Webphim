@@ -1,12 +1,16 @@
-html
 <!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thư viện — duyệt bìa và xem tiếp trên Telegram.">
 
-    <title>📚 Thư Viện Truyện</title>
+    <title>📚 Thư Viện </title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Spectral:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,13 +18,17 @@ html
 <body>
 
     <header>
-        <h1>📚 Thư Viện Truyện</h1>
+        <div class="brand">
+            <h1>📚 Video</h1>
+            <p class="tagline">Xem trên Telegram</p>
+        </div>
 
         <div class="search-box">
+            <label for="search" class="visually-hidden">Tìm kiếm</label>
             <input
                 id="search"
                 type="text"
-                placeholder="🔍 Tìm truyện..."
+                placeholder="🔍 Tìm kiếm..."
                 autocomplete="off">
         </div>
     </header>
@@ -35,7 +43,7 @@ html
 
     </main>
 
-    <script src="script.js"></script>
+    <script src="scripts.js"></script>
 
 </body>
 
