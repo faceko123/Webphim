@@ -19,6 +19,11 @@ title: "MIDA-649",
 image: "images/4.jpg",
 telegram: "https://t.me/+4J5Y6PhNPMdkOWE1"
 },
+{
+title: "MIMK-187",
+image: "images/5.jpg",
+telegram: "https://tktube.com/vi/videos/302991/mimk-187c-u-1-1-2-43-000-s/"
+},
 ];
 
 const ITEMS_PER_PAGE = 8;
