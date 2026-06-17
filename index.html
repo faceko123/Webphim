@@ -1,6 +1,42 @@
-<input id="search"
-       placeholder="Tìm truyện...">
- 
-<div id="grid" class="grid"></div>
+html
+<!DOCTYPE html>
+<html lang="vi">
 
-<div id="pagination"></div> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>📚 Thư Viện Truyện</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>📚 Thư Viện Truyện</h1>
+
+        <div class="search-box">
+            <input
+                id="search"
+                type="text"
+                placeholder="🔍 Tìm truyện..."
+                autocomplete="off">
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Danh sách truyện -->
+        <div id="grid" class="grid"></div>
+
+        <!-- Phân trang -->
+        <div id="pagination"></div>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
