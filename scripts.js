@@ -1,5 +1,10 @@
 const stories = [
 {
+title: "SWEE904",
+image: "images/yee_rim.jpg",
+telegram: "https://t.me/swee904x"
+},
+{
 title: "SNOS-139",
 image: "images/1.jpg",
 telegram: "https://t.me/+S7uFgXY4HxUwZjk1"
