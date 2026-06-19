@@ -5,6 +5,14 @@ image: "images/yee_rim.jpg",
 telegram: "https://t.me/swee904x"
 },
 {
+title: "Yumi_03",
+image: "yumi_03.webp",
+telegram: [
+    "https://t.me/+lKumIRQ2mI04NmI1",
+    "https://t.me/+hKUWeNp8laczNjFl",
+]
+},
+{
 title: "SNOS-139",
 image: "images/1.jpg",
 telegram: "https://t.me/+S7uFgXY4HxUwZjk1"
@@ -82,19 +90,27 @@ items.forEach(item=>{
         <div class="page-edge"></div>
         <div class="info">
             <div class="title">${item.title}</div>
-            <a class="telegram btn"
-               href="${item.telegram}"
-               target="_blank"
-               rel="noopener">
-               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                   <line x1="22" y1="2" x2="11" y2="13"></line>
-                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-               </svg>
-               <span class="label-full">Xem</span>
-               <span class="label-short">Xem</span>
-            </a>
-        </div>
+
+            ${
+                Array.isArray(item.telegram)
+                ? item.telegram.map((link, index) => `
+                    <a class="telegram btn"
+                        href="${link}"
+                        target="_blank"
+                        rel="noopener">
+                        <span>Xem ${index + 1}</span>
+                    </a>
+                `).join("")
+                : `
+                <a class="telegram btn"
+                    href="${item.telegram}"
+                    target="_blank"
+                    rel="noopener">
+                    <span>Xem</span>
+                </a>
+                `
+            }
+        </div>  
     `;
 
     grid.appendChild(card);
@@ -147,17 +163,15 @@ renderPage(1);
 
 renderPage(1);
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".btn");
+    if (!btn) return;
+
+    e.preventDefault();
+
+    const telegramUrl = btn.href;
     const shopeeUrl = "https://s.shopee.vn/10y6YHWxqs";
-    const links = document.querySelectorAll(".btn");
 
-    links.forEach(function (link) {
-        link.addEventListener("click", function (e) {
-            const telegramUrl = this.getAttribute("href");
-            e.preventDefault();
-
-            window.open(shopeeUrl, "_blank");
-            window.location.href = telegramUrl;
-        });
-    });
+    window.open(shopeeUrl, "_blank");
+    window.location.href = telegramUrl;
 });
