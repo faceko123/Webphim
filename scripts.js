@@ -6,7 +6,7 @@ telegram: "https://t.me/swee904x"
 },
 {
 title: "Yumi_03",
-image: "yumi_03.webp",
+image: "images/yumi_03.webp",
 telegram: [
     "https://t.me/+lKumIRQ2mI04NmI1",
     "https://t.me/+hKUWeNp8laczNjFl",
@@ -98,7 +98,10 @@ items.forEach(item=>{
                         href="${link}"
                         target="_blank"
                         rel="noopener">
-                        <span>Xem ${index + 1}</span>
+                        ${index === 0
+                            ? '<span>Xem ảnh</span>'
+                            : '<span>Xem video</span>'
+                        }
                     </a>
                 `).join("")
                 : `
