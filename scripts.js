@@ -13,6 +13,14 @@ telegram: [
 ]
 },
 {
+title: "aryminh",
+image: "images/aryminh.jpg",
+telegram: [
+    "https://t.me/+di26JmXczwY0MTFl",
+    "https://t.me/+8spGY0vSHtgwOGE1",
+]
+},
+{
 title: "SNOS-139",
 image: "images/1.jpg",
 telegram: "https://t.me/+S7uFgXY4HxUwZjk1"
