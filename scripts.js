@@ -26,6 +26,11 @@ image: "images/yoongongju.jpg",
 telegram: "https://t.me/+QhGi3rU_28VmNzg9"
 },
 {
+title: "Yoon gong-ju",
+image: "images/meriol.jpg",
+telegram: "https://t.me/+6pFpitdxNww2ZDU1"
+},
+{
 title: "SNOS-139",
 image: "images/1.jpg",
 telegram: "https://t.me/+S7uFgXY4HxUwZjk1"
