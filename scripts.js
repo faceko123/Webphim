@@ -53,141 +53,73 @@ telegram: "https://tktube.com/vi/videos/302991/mimk-187c-u-1-1-2-43-000-s/"
 ];
 
 const ITEMS_PER_PAGE = 8;
-
 let filtered = [...stories];
-let currentPage = 1;
+let displayedCount = 0;
 
 const grid = document.getElementById("grid");
-const pagination = document.getElementById("pagination");
 const search = document.getElementById("search");
 
-function renderPage(page){
-
-
-currentPage = page;
-
-const start = (page - 1) * ITEMS_PER_PAGE;
-const end = start + ITEMS_PER_PAGE;
-
-const items = filtered.slice(start,end);
-
-grid.innerHTML = "";
-
-if(items.length === 0){
-
-    const empty = document.createElement("div");
-
-    empty.className = "empty-state";
-
-    empty.innerHTML = search.value
-        ? `Không tìm thấy video nào khớp với “<strong>${search.value}</strong>”`
-        : `Chưa có video nào trong thư viện.`;
-
-    grid.appendChild(empty);
-
-    renderPagination();
-
-    return;
-}
-
-items.forEach(item=>{
-
-    const card = document.createElement("div");
-
-    card.className = "card";
-
-    card.innerHTML = `
-        <img loading="lazy"
-             src="${item.image}"
-             alt="${item.title}">
-        <div class="page-edge"></div>
-        <div class="info">
-            <div class="title">${item.title}</div>
-
-            ${
-                Array.isArray(item.telegram)
-                ? item.telegram.map((link, index) => `
-                    <a class="telegram btn"
-                        href="${link}"
-                        target="_blank"
-                        rel="noopener">
-                        ${index === 0
-                            ? '<span>Xem ảnh</span>'
-                            : '<span>Xem video</span>'
-                        }
-                    </a>
-                `).join("")
-                : `
-                <a class="telegram btn"
-                    href="${item.telegram}"
-                    target="_blank"
-                    rel="noopener">
-                    <span>Xem</span>
-                </a>
-                `
-            }
-        </div>  
-    `;
-
-    grid.appendChild(card);
-});
-
-renderPagination();
-
-
-}
-
-function renderPagination(){
-
-
-pagination.innerHTML = "";
-
-const totalPages =
-    Math.ceil(filtered.length / ITEMS_PER_PAGE);
-
-for(let i=1;i<=totalPages;i++){
-
-    const btn = document.createElement("button");
-
-    btn.textContent = i;
-
-    if(i === currentPage){
-        btn.classList.add("active");
+// Tạo Observer bên ngoài để tái sử dụng
+const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+        observer.unobserve(entries[0].target); // Ngừng quan sát cái cũ
+        loadMore();
     }
+}, { threshold: 0.1 });
 
-    btn.onclick = ()=>renderPage(i);
+function loadMore() {
+    // Chỉ lấy phần tử tiếp theo chưa hiển thị
+    const nextItems = filtered.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
+    
+    // Xóa thẻ sentinel cũ nếu có
+    const oldSentinel = document.getElementById("sentinel");
+    if (oldSentinel) oldSentinel.remove();
 
-    pagination.appendChild(btn);
+    // Thêm các item mới vào mà không xóa item cũ
+    renderItems(nextItems);
+    
+    displayedCount += ITEMS_PER_PAGE;
+
+    // Nếu vẫn còn dữ liệu, thêm lại sentinel vào cuối
+    if (displayedCount < filtered.length) {
+        const sentinel = document.createElement("div");
+        sentinel.id = "sentinel";
+        grid.appendChild(sentinel);
+        observer.observe(sentinel);
+    }
 }
 
-
+function renderItems(items) {
+    items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+            <img loading="lazy" src="${item.image}" alt="${item.title}">
+            <div class="page-edge"></div>
+            <div class="info">
+                <div class="title">${item.title}</div>
+                ${Array.isArray(item.telegram)
+                    ? item.telegram.map((link, index) => `
+                        <a class="telegram btn" href="${link}" target="_blank" rel="noopener">
+                            ${index === 0 ? '<span>Xem ảnh</span>' : '<span>Xem video</span>'}
+                        </a>`).join("")
+                    : `<a class="telegram btn" href="${item.telegram}" target="_blank" rel="noopener"><span>Xem</span></a>`
+                }
+            </div>
+        `;
+        grid.appendChild(card);
+    });
 }
 
-search.addEventListener("input",()=>{
-
-const keyword =
-    search.value.toLowerCase();
-
-filtered = stories.filter(story =>
-    story.title.toLowerCase()
-    .includes(keyword)
-);
-
-renderPage(1);
-
+// Xử lý tìm kiếm (cần xóa sạch và render lại từ đầu)
+search.addEventListener("input", () => {
+    const keyword = search.value.toLowerCase();
+    filtered = stories.filter(story => story.title.toLowerCase().includes(keyword));
+    
+    grid.innerHTML = ""; // Chỉ xóa ở đây khi tìm kiếm
+    displayedCount = 0;
+    loadMore(); 
 });
 
-renderPage(1);
-
-document.addEventListener("click", function (e) {
-    const btn = e.target.closest(".btn");
-    if (!btn) return;
-
-    e.preventDefault();
-
-    const telegramUrl = btn.href;
-    const shopeeUrl = "https://s.shopee.vn/10y6YHWxqs";
-
-    window.open(shopeeUrl, "_blank");
-    window.location.href = telegramUrl;
-});
+// Chạy lần đầu
+loadMore();
