@@ -21,6 +21,11 @@ telegram: [
 ]
 },
 {
+title: "Yoon gongju",
+image: "images/yoongongju.jpg",
+telegram: "https://t.me/+QhGi3rU_28VmNzg9"
+},
+{
 title: "SNOS-139",
 image: "images/1.jpg",
 telegram: "https://t.me/+S7uFgXY4HxUwZjk1"
