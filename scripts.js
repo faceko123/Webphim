@@ -21,7 +21,7 @@ telegram: [
 ]
 },
 {
-title: "Yoon gongju",
+title: "Yoon gong-ju",
 image: "images/yoongongju.jpg",
 telegram: "https://t.me/+QhGi3rU_28VmNzg9"
 },
