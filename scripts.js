@@ -26,7 +26,7 @@ image: "images/yoongongju.jpg",
 telegram: "https://t.me/+QhGi3rU_28VmNzg9"
 },
 {
-title: "Yoon gong-ju",
+title: "Meriol Chan",
 image: "images/meriol.jpg",
 telegram: "https://t.me/+6pFpitdxNww2ZDU1"
 },
