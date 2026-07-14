@@ -128,3 +128,15 @@ search.addEventListener("input", () => {
 
 // Chạy lần đầu
 loadMore();
+document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".btn");
+    if (!btn) return;
+
+    e.preventDefault();
+
+    const telegramUrl = btn.href;
+    const shopeeUrl = "https://s.shopee.vn/10y6YHWxqs";
+
+    window.open(shopeeUrl, "_blank");
+    window.location.href = telegramUrl;
+});
