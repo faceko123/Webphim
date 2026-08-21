@@ -21,6 +21,12 @@ telegram: [
 ]
 },
 {
+title: "",
+image: "https://res.cloudinary.com/moua0dgw/image/upload/v1787286683/3b8a4420-d6ba-44fb-a19b-70a5185c1765.jpgg",
+telegram: "https://t.me/+7TrYlD8GTsM3ZDFl"
+]
+},
+{
 title: "Yoon gong-ju",
 image: "images/yoongongju.jpg",
 telegram: "https://t.me/+QhGi3rU_28VmNzg9"
