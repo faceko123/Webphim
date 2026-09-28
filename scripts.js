@@ -21,6 +21,11 @@ telegram: [
 ]
 },
 {
+title: "niki",
+image: "https://res.cloudinary.com/moua0dgw/image/upload/v1790582327/Thi%E1%BA%BFt_k%E1%BA%BF_ch%C6%B0a_c%C3%B3_t%C3%AAn.png",
+telegram: "https://t.me/+GO1SAHQpL1c2NDZl"
+},
+{
 title: "",
 image: "https://res.cloudinary.com/moua0dgw/image/upload/v1787286683/3b8a4420-d6ba-44fb-a19b-70a5185c1765.jpg",
 telegram: "https://t.me/+7TrYlD8GTsM3ZDFl"
