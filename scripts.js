@@ -1,7 +1,7 @@
-// 1. Cấu hình Supabase (Thay thông tin dự án của bạn tại đây)
+// 1. Cấu hình Supabase (Đổi tên biến thành supabaseClient để tránh trùng với thư viện CDN)
 const SUPABASE_URL = 'https://umaxbpkplohjcsckwddl.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_b4qb5xuTjj3OsMWo8l3Lmw_Y87Gesu3';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Các biến quản lý trạng thái
 const ITEMS_PER_PAGE = 8;
@@ -23,7 +23,7 @@ const observer = new IntersectionObserver((entries) => {
 // 3. Hàm tải dữ liệu từ Supabase Database
 async function fetchStoriesFromSupabase() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('stories')
             .select('*')
             .order('created_at', { ascending: false });
