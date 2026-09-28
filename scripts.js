@@ -1,101 +1,60 @@
-const stories = [
-{
-title: "SWEE904",
-image: "images/yee_rim.jpg",
-telegram: "https://t.me/swee904x"
-},
-{
-title: "Yumi_03",
-image: "images/yumi_03.webp",
-telegram: [
-    "https://t.me/+lKumIRQ2mI04NmI1",
-    "https://t.me/+hKUWeNp8laczNjFl",
-]
-},
-{
-title: "aryminh",
-image: "images/aryminh.jpg",
-telegram: [
-    "https://t.me/+di26JmXczwY0MTFl",
-    "https://t.me/+8spGY0vSHtgwOGE1",
-]
-},
-{
-title: "niki",
-image: "https://res.cloudinary.com/moua0dgw/image/upload/v1790582327/Thi%E1%BA%BFt_k%E1%BA%BF_ch%C6%B0a_c%C3%B3_t%C3%AAn.png",
-telegram: "https://t.me/+GO1SAHQpL1c2NDZl"
-},
-{
-title: "",
-image: "https://res.cloudinary.com/moua0dgw/image/upload/v1787286683/3b8a4420-d6ba-44fb-a19b-70a5185c1765.jpg",
-telegram: "https://t.me/+7TrYlD8GTsM3ZDFl"
-},
-{
-title: "Yoon gong-ju",
-image: "images/yoongongju.jpg",
-telegram: "https://t.me/+QhGi3rU_28VmNzg9"
-},
-{
-title: "Meriol Chan",
-image: "images/meriol.jpg",
-telegram: "https://t.me/+6pFpitdxNww2ZDU1"
-},
-{
-title: "SNOS-139",
-image: "images/1.jpg",
-telegram: "https://t.me/+S7uFgXY4HxUwZjk1"
-},
-{
-title: "SONE-798",
-image: "images/2.jpg",
-telegram: "https://t.me/+u1leGvRIE9dhYzJl"
-},
-{
-title: "MIDV-699",
-image: "images/3.jpg",
-telegram: "https://t.me/+Jfgh2HAbRws2MTI1"
-},
-{
-title: "MIDA-649",
-image: "images/4.jpg",
-telegram: "https://t.me/+4J5Y6PhNPMdkOWE1"
-},
-{
-title: "MIMK-187",
-image: "images/5.jpg",
-telegram: "https://tktube.com/vi/videos/302991/mimk-187c-u-1-1-2-43-000-s/"
-},
-];
+// 1. Cấu hình Supabase (Thay thông tin dự án của bạn tại đây)
+const SUPABASE_URL = 'https://umaxbpkplohjcsckwddl.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_b4qb5xuTjj3OsMWo8l3Lmw_Y87Gesu3';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Các biến quản lý trạng thái
 const ITEMS_PER_PAGE = 8;
-let filtered = [...stories];
+let stories = [];       // Dữ liệu gốc lấy từ Supabase
+let filtered = [];      // Dữ liệu sau khi tìm kiếm
 let displayedCount = 0;
 
 const grid = document.getElementById("grid");
 const search = document.getElementById("search");
 
-// Tạo Observer bên ngoài để tái sử dụng
+// 2. IntersectionObserver hỗ trợ Infinite Scroll
 const observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
-        observer.unobserve(entries[0].target); // Ngừng quan sát cái cũ
+        observer.unobserve(entries[0].target);
         loadMore();
     }
 }, { threshold: 0.1 });
 
+// 3. Hàm tải dữ liệu từ Supabase Database
+async function fetchStoriesFromSupabase() {
+    try {
+        const { data, error } = await supabase
+            .from('stories')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Lỗi lấy dữ liệu Supabase:", error.message);
+            grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu!</div>';
+            return;
+        }
+
+        stories = data || [];
+        filtered = [...stories];
+        
+        grid.innerHTML = "";
+        displayedCount = 0;
+        loadMore();
+    } catch (err) {
+        console.error("Lỗi hệ thống:", err);
+    }
+}
+
+// 4. Hàm hiển thị thêm sản phẩm khi cuộn trang
 function loadMore() {
-    // Chỉ lấy phần tử tiếp theo chưa hiển thị
     const nextItems = filtered.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
     
-    // Xóa thẻ sentinel cũ nếu có
     const oldSentinel = document.getElementById("sentinel");
     if (oldSentinel) oldSentinel.remove();
 
-    // Thêm các item mới vào mà không xóa item cũ
     renderItems(nextItems);
-    
     displayedCount += ITEMS_PER_PAGE;
 
-    // Nếu vẫn còn dữ liệu, thêm lại sentinel vào cuối
     if (displayedCount < filtered.length) {
         const sentinel = document.createElement("div");
         sentinel.id = "sentinel";
@@ -104,21 +63,31 @@ function loadMore() {
     }
 }
 
+// 5. Render thẻ Card
 function renderItems(items) {
+    if (items.length === 0 && displayedCount === 0) {
+        grid.innerHTML = '<div class="empty-state">Không tìm thấy nội dung phù hợp!</div>';
+        return;
+    }
+
     items.forEach(item => {
         const card = document.createElement("div");
         card.className = "card";
+
+        // Xử lý dữ liệu telegram (chuyển sang mảng nếu cần)
+        const teleLinks = Array.isArray(item.telegram) ? item.telegram : [item.telegram];
+
         card.innerHTML = `
-            <img loading="lazy" src="${item.image}" alt="${item.title}">
+            <img loading="lazy" src="${item.image}" alt="${item.title || 'Video'}">
             <div class="page-edge"></div>
             <div class="info">
-                <div class="title">${item.title}</div>
-                ${Array.isArray(item.telegram)
-                    ? item.telegram.map((link, index) => `
+                <div class="title">${item.title || 'Không có tiêu đề'}</div>
+                ${teleLinks.length > 1
+                    ? teleLinks.map((link, index) => `
                         <a class="telegram btn" href="${link}" target="_blank" rel="noopener">
                             ${index === 0 ? '<span>Xem ảnh</span>' : '<span>Xem video</span>'}
                         </a>`).join("")
-                    : `<a class="telegram btn" href="${item.telegram}" target="_blank" rel="noopener"><span>Xem</span></a>`
+                    : `<a class="telegram btn" href="${teleLinks[0]}" target="_blank" rel="noopener"><span>Xem</span></a>`
                 }
             </div>
         `;
@@ -126,18 +95,19 @@ function renderItems(items) {
     });
 }
 
-// Xử lý tìm kiếm (cần xóa sạch và render lại từ đầu)
+// 6. Xử lý sự kiện tìm kiếm
 search.addEventListener("input", () => {
-    const keyword = search.value.toLowerCase();
-    filtered = stories.filter(story => story.title.toLowerCase().includes(keyword));
+    const keyword = search.value.toLowerCase().trim();
+    filtered = stories.filter(story => 
+        (story.title && story.title.toLowerCase().includes(keyword))
+    );
     
-    grid.innerHTML = ""; // Chỉ xóa ở đây khi tìm kiếm
+    grid.innerHTML = "";
     displayedCount = 0;
     loadMore(); 
 });
 
-// Chạy lần đầu
-loadMore();
+// 7. Xử lý chuyển hướng quảng cáo khi click button
 document.addEventListener("click", function (e) {
     const btn = e.target.closest(".btn");
     if (!btn) return;
@@ -150,3 +120,6 @@ document.addEventListener("click", function (e) {
     window.open(shopeeUrl, "_blank");
     window.location.href = telegramUrl;
 });
+
+// 8. Khởi chạy ứng dụng
+fetchStoriesFromSupabase();
