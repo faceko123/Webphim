@@ -26,7 +26,7 @@ async function fetchStoriesFromSupabase() {
         const { data, error } = await supabaseClient
             .from('stories')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('id', { ascending: true });
 
         if (error) {
             console.error("Lỗi lấy dữ liệu Supabase:", error.message);
