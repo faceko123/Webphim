@@ -1,71 +1,83 @@
-// 1. Cấu hình Supabase (Đổi tên biến thành supabaseClient để tránh trùng với thư viện CDN)
+// 1. Cấu hình Supabase Client
 const SUPABASE_URL = 'https://umaxbpkplohjcsckwddl.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_b4qb5xuTjj3OsMWo8l3Lmw_Y87Gesu3';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Các biến quản lý trạng thái
-const ITEMS_PER_PAGE = 8;
-let stories = [];       // Dữ liệu gốc lấy từ Supabase
-let filtered = [];      // Dữ liệu sau khi tìm kiếm
-let displayedCount = 0;
+const ITEMS_PER_PAGE = 12;
+let page = 0;
+let hasMore = true;
+let isLoading = false;
+let currentSearchKeyword = "";
 
 const grid = document.getElementById("grid");
 const search = document.getElementById("search");
 
-// 2. IntersectionObserver hỗ trợ Infinite Scroll
+// 2. IntersectionObserver hỗ trợ Infinite Scroll khi cuộn tới cuối trang
 const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-        observer.unobserve(entries[0].target);
-        loadMore();
+    if (entries[0].isIntersecting && hasMore && !isLoading) {
+        loadMoreStories();
     }
 }, { threshold: 0.1 });
 
-// 3. Hàm tải dữ liệu từ Supabase Database
-async function fetchStoriesFromSupabase() {
-    try {
-        const { data, error } = await supabaseClient
-            .from('stories')
-            .select('*')
-            .order('id', { ascending: true });
+// 3. Hàm tải dữ liệu phân trang trực tiếp từ Supabase
+async function loadMoreStories() {
+    if (isLoading || !hasMore) return;
+    isLoading = true;
 
-        if (error) {
-            console.error("Lỗi lấy dữ liệu Supabase:", error.message);
-            grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu!</div>';
-            return;
-        }
-
-        stories = data || [];
-        filtered = [...stories];
-        
-        grid.innerHTML = "";
-        displayedCount = 0;
-        loadMore();
-    } catch (err) {
-        console.error("Lỗi hệ thống:", err);
-    }
-}
-
-// 4. Hàm hiển thị thêm sản phẩm khi cuộn trang
-function loadMore() {
-    const nextItems = filtered.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
-    
+    // Xóa phần tử cuộn cũ (sentinel) nếu có
     const oldSentinel = document.getElementById("sentinel");
     if (oldSentinel) oldSentinel.remove();
 
-    renderItems(nextItems);
-    displayedCount += ITEMS_PER_PAGE;
+    const from = page * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
 
-    if (displayedCount < filtered.length) {
-        const sentinel = document.createElement("div");
-        sentinel.id = "sentinel";
-        grid.appendChild(sentinel);
-        observer.observe(sentinel);
+    try {
+        let query = supabaseClient
+            .from('stories')
+            .select('*')
+            .order('id', { ascending: true }) // Sắp xếp theo ID tăng dần
+            .range(from, to);
+
+        // Lọc từ Server nếu người dùng có nhập từ khóa tìm kiếm
+        if (currentSearchKeyword) {
+            query = query.ilike('title', `%${currentSearchKeyword}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error("Lỗi lấy dữ liệu:", error.message);
+            if (page === 0) {
+                grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu!</div>';
+            }
+            return;
+        }
+
+        if (!data || data.length < ITEMS_PER_PAGE) {
+            hasMore = false; // Đã hết dữ liệu trong Database
+        }
+
+        renderItems(data);
+        page++;
+
+        // Tạo phần tử theo dõi cuộn trang nếu vẫn còn dữ liệu
+        if (hasMore) {
+            const sentinel = document.createElement("div");
+            sentinel.id = "sentinel";
+            grid.appendChild(sentinel);
+            observer.observe(sentinel);
+        }
+    } catch (err) {
+        console.error("Lỗi hệ thống:", err);
+    } finally {
+        isLoading = false;
     }
 }
 
-// 5. Render thẻ Card
+// 4. Render thẻ Card
 function renderItems(items) {
-    if (items.length === 0 && displayedCount === 0) {
+    if (items.length === 0 && page === 0) {
         grid.innerHTML = '<div class="empty-state">Không tìm thấy nội dung phù hợp!</div>';
         return;
     }
@@ -95,19 +107,24 @@ function renderItems(items) {
     });
 }
 
-// 6. Xử lý sự kiện tìm kiếm
+// 5. Xử lý sự kiện tìm kiếm (Debounce nhẹ để tránh gửi query liên tục)
+let searchTimeout;
 search.addEventListener("input", () => {
-    const keyword = search.value.toLowerCase().trim();
-    filtered = stories.filter(story => 
-        (story.title && story.title.toLowerCase().includes(keyword))
-    );
-    
-    grid.innerHTML = "";
-    displayedCount = 0;
-    loadMore(); 
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        currentSearchKeyword = search.value.trim();
+        
+        // Reset trạng thái về trang đầu tiên
+        grid.innerHTML = "";
+        page = 0;
+        hasMore = true;
+        isLoading = false;
+
+        loadMoreStories();
+    }, 300); // Chờ 300ms sau khi ngừng gõ mới gửi yêu cầu
 });
 
-// 7. Xử lý chuyển hướng quảng cáo khi click button
+// 6. Xử lý chuyển hướng quảng cáo khi click button
 document.addEventListener("click", function (e) {
     const btn = e.target.closest(".btn");
     if (!btn) return;
@@ -121,5 +138,5 @@ document.addEventListener("click", function (e) {
     window.location.href = telegramUrl;
 });
 
-// 8. Khởi chạy ứng dụng
-fetchStoriesFromSupabase();
+// 7. Khởi chạy ứng dụng
+loadMoreStories();
