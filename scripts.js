@@ -36,7 +36,8 @@ async function loadMoreStories() {
         let query = supabaseClient
             .from('stories')
             .select('*')
-            .order('id', { ascending: true }) // Sắp xếp theo ID tăng dần
+            .order('click_count', { ascending: false }) // Nhiều lượt bấm nhất lên đầu
+            .order('id', { ascending: true })           // Bằng nhau (kể cả chưa có lượt) -> theo ID tăng dần
             .range(from, to);
 
         // Lọc từ Server nếu người dùng có nhập từ khóa tìm kiếm
@@ -96,10 +97,10 @@ function renderItems(items) {
                 <div class="title">${item.title || 'Không có tiêu đề'}</div>
                 ${teleLinks.length > 1
                     ? teleLinks.map((link, index) => `
-                        <a class="telegram btn" href="${link}" target="_blank" rel="noopener">
+                        <a class="telegram btn" data-id="${item.id}" href="${link}" target="_blank" rel="noopener">
                             ${index === 0 ? '<span>Xem ảnh</span>' : '<span>Xem video</span>'}
                         </a>`).join("")
-                    : `<a class="telegram btn" href="${teleLinks[0]}" target="_blank" rel="noopener"><span>Xem</span></a>`
+                    : `<a class="telegram btn" data-id="${item.id}" href="${teleLinks[0]}" target="_blank" rel="noopener"><span>Xem</span></a>`
                 }
             </div>
         `;
@@ -113,7 +114,7 @@ search.addEventListener("input", () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         currentSearchKeyword = search.value.trim();
-        
+
         // Reset trạng thái về trang đầu tiên
         grid.innerHTML = "";
         page = 0;
@@ -124,12 +125,34 @@ search.addEventListener("input", () => {
     }, 300); // Chờ 300ms sau khi ngừng gõ mới gửi yêu cầu
 });
 
-// 6. Xử lý chuyển hướng quảng cáo khi click button
+// 6. Ghi nhận lượt bấm.
+//    Dùng fetch + keepalive để request vẫn được gửi đi dù trang sắp chuyển sang Telegram.
+function trackClick(storyId) {
+    if (!storyId) return;
+    try {
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_click`, {
+            method: "POST",
+            keepalive: true,
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({ story_id: Number(storyId) })
+        }).catch(() => { });
+    } catch (err) {
+        console.error("Lỗi ghi nhận lượt bấm:", err);
+    }
+}
+
+// 7. Xử lý chuyển hướng quảng cáo khi click button
 document.addEventListener("click", function (e) {
     const btn = e.target.closest(".btn");
     if (!btn) return;
 
     e.preventDefault();
+
+    trackClick(btn.dataset.id);
 
     const telegramUrl = btn.href;
     const shopeeUrl = "https://s.shopee.vn/10y6YHWxqs";
@@ -138,5 +161,5 @@ document.addEventListener("click", function (e) {
     window.location.href = telegramUrl;
 });
 
-// 7. Khởi chạy ứng dụng
+// 8. Khởi chạy ứng dụng
 loadMoreStories();
